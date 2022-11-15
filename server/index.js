@@ -221,6 +221,17 @@ app.delete("/deletecampgroundreview", async (req, res) => {
   res.send("Deleted");
 });
 
+app.delete("/deleteusercampground", async (req, res) => {
+  var campgroundname = req.query.campground;
+  var username = req.query.username;
+  console.log(campgroundname, username);
+  await campground.remove({
+    name: campgroundname,
+    username: username
+  });
+  res.send("Deleted");
+});
+
 app.put("/updatecomment", async (req, res) => {
   var email = req.body.email;
   var campground = req.body.campground;
@@ -252,6 +263,42 @@ app.put("/updatereview", async (req, res) => {
       {
         $set: {
           review: review
+        }
+      }
+    );
+    res.send("Updated");
+  } catch (error) {
+    console.log(error);
+  }
+});
+
+app.put("/updatecampground", async (req, res) => {
+  var username = req.body.username;
+  var campgroundname = req.body.campgroundname;
+  var campgroundlocation = req.body.campgroundlocation;
+  var campgroundprice = req.body.campgroundprice;
+  var campgroundimageurl = req.body.campgroundimageurl;
+  var campgrounddescription = req.body.campgrounddescription;
+  var currentdateandtime = req.body.currentdateandtime;
+  console.log(
+    username,
+    campgroundname,
+    campgroundlocation,
+    campgroundprice,
+    campgroundimageurl,
+    campgrounddescription,
+    currentdateandtime
+  );
+  try {
+    await campground.updateOne(
+      { username: username, name: campgroundname },
+      {
+        $set: {
+          location: campgroundlocation,
+          price: campgroundprice,
+          imageurl: campgroundimageurl,
+          description: campgrounddescription,
+          dateandtime: currentdateandtime
         }
       }
     );

@@ -4,8 +4,8 @@ import CardMedia from "@mui/material/CardMedia";
 import Typography from "@mui/material/Typography";
 import { Button, CardActionArea, CardActions, Container } from "@mui/material";
 import { Box, Stack } from "@mui/system";
-import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import React, { useState } from "react";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import HomeappBar from "../../Navbar/Home";
 import Review from "../../Review/review";
 import Addreview from "../../Review/add_review";
@@ -14,7 +14,24 @@ import Comment from "../../comment/comment";
 import WbSunnyIcon from "@mui/icons-material/WbSunny";
 import MapIcon from "@mui/icons-material/Map";
 import HomeWorkIcon from "@mui/icons-material/HomeWork";
+import DeleteIcon from "@mui/icons-material/Delete";
+import UpdateIcon from "@mui/icons-material/Update";
+import { TextField } from "@mui/material";
+import Modal from "@mui/material/Modal";
+import axios from "axios";
 // import "../../../css/map.css";
+
+const style = {
+  position: "absolute",
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
+  width: 400,
+  bgcolor: "white",
+  border: "2px solid #000",
+  boxShadow: 24,
+  p: 4
+};
 
 const Campgrounddetails = () => {
   const location = useLocation();
@@ -24,6 +41,13 @@ const Campgrounddetails = () => {
   const description = location.state.description;
   const username = location.state.username;
   const dateandtime = location.state.dateandtime;
+  const [modalstate, setmodalstate] = useState(false);
+  const handleClose = () => setmodalstate(false);
+  const [campgroundlocation, setcampgroundlocation] = useState("");
+  const [campgroundprice, setcampgroundprice] = useState("");
+  const [campgroundimageurl, setcampgroundimageurl] = useState("");
+  const [campgrounddescription, setcampgrounddescription] = useState("");
+  const navigate = useNavigate();
 
   return (
     <Box>
@@ -75,6 +99,114 @@ const Campgrounddetails = () => {
                       </Link>{" "}
                       on {dateandtime}
                     </Typography>
+                    {localStorage.getItem("name") == username
+                      ? <Stack
+                          direction="row"
+                          spacing={2}
+                          sx={{ justifyContent: "right" }}
+                        >
+                          <DeleteIcon
+                            onClick={() => {
+                              axios
+                                .delete(
+                                  "http://localhost:3001/deleteusercampground",
+                                  {
+                                    params: {
+                                      campground: name,
+                                      username: username
+                                    }
+                                  }
+                                )
+                                .then(res => {
+                                  if (res.data == "Deleted")
+                                    navigate("/viewcampground");
+                                });
+                            }}
+                          />
+                          {modalstate
+                            ? <Modal
+                                open={modalstate}
+                                onClose={handleClose}
+                                aria-labelledby="modal-modal-title"
+                                aria-describedby="modal-modal-description"
+                              >
+                                <Stack sx={style} spacing={4}>
+                                  <Typography
+                                    id="modal-modal-title"
+                                    variant="h6"
+                                    component="h2"
+                                  >
+                                    {name}
+                                  </Typography>
+
+                                  <TextField
+                                    fullWidth
+                                    label="Location"
+                                    id="fullWidth"
+                                    value={campgroundlocation}
+                                    onChange={e =>
+                                      setcampgroundlocation(e.target.value)}
+                                  />
+                                  <TextField
+                                    fullWidth
+                                    label="Price"
+                                    id="fullWidth"
+                                    value={campgroundprice}
+                                    onChange={e =>
+                                      setcampgroundprice(e.target.value)}
+                                  />
+                                  <TextField
+                                    fullWidth
+                                    label="Image Url"
+                                    id="fullWidth"
+                                    value={campgroundimageurl}
+                                    onChange={e =>
+                                      setcampgroundimageurl(e.target.value)}
+                                  />
+                                  <TextField
+                                    fullWidth
+                                    label="Description"
+                                    id="fullWidth"
+                                    value={campgrounddescription}
+                                    onChange={e =>
+                                      setcampgrounddescription(e.target.value)}
+                                  />
+                                  <Button
+                                    variant="contained"
+                                    color="primary"
+                                    onClick={() => {
+                                      axios
+                                        .put(
+                                          "http://localhost:3001/updatecampground",
+                                          {
+                                            username: localStorage.getItem(
+                                              "name"
+                                            ),
+                                            campgroundname: name,
+                                            campgroundlocation: campgroundlocation,
+                                            campgroundprice: campgroundprice,
+                                            campgroundimageurl: campgroundimageurl,
+                                            campgrounddescription: campgrounddescription,
+                                            currentdateandtime: new Date()
+                                              .toLocaleString()
+                                              .replace(",", "")
+                                          }
+                                        )
+                                        .then(res => {
+                                          if (res.data == "Updated") {
+                                            navigate("/viewcampground");
+                                          }
+                                        });
+                                    }}
+                                  >
+                                    Update
+                                  </Button>
+                                </Stack>
+                              </Modal>
+                            : ""}
+                          <UpdateIcon onClick={() => setmodalstate(true)} />
+                        </Stack>
+                      : ""}
                   </Stack>
                 </CardContent>
               </CardActionArea>
